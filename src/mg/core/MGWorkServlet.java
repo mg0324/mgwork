@@ -116,8 +116,9 @@ public abstract class MGWorkServlet extends HttpServlet{
 			try {
 				res = (String) m.invoke(this);
 				if(res!=null){
-					String tourl = res + MGWORK_WEB_PAGE_STUFFIX;
+					String tourl = res;
 					if(!res.substring(0,1).equals("/")) tourl = MGWORK_WEBFLOADER_PREFIX + "/" + tourl;
+					if(!res.contains(".")) tourl = tourl + MGWORK_WEB_PAGE_STUFFIX;
 					request.getRequestDispatcher(tourl).forward(request,response);
 				}
 			} catch (IllegalAccessException e) {
@@ -205,5 +206,19 @@ public abstract class MGWorkServlet extends HttpServlet{
 			}
 		}
 		return map;
+	}
+	/**增加request的方法**/
+	protected void setAttr(String key,Object v) {
+		this.request.setAttribute(key, v);
+	}
+	protected Object getAttr(String key) {
+		return this.request.getAttribute(key);
+	}
+	
+	protected void setSessionAttr(String key,Object v) {
+		this.request.getSession().setAttribute(key, v);
+	}
+	protected Object getSessionAttr(String key) {
+		return this.request.getSession().getAttribute(key);
 	}
 }
