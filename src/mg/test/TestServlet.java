@@ -16,7 +16,7 @@ public class TestServlet extends MGWorkServlet{
 	 */
 	public String test1(){
 		
-		return "test1.html";
+		return "test1";
 	}
 	
 	/**
@@ -25,14 +25,14 @@ public class TestServlet extends MGWorkServlet{
 	 */
 	public String test2(){
 		
-		return "test2.html";
+		return "test2";
 	}
 	
 	public String wrapfrm(){
 		System.out.println(mgf2Object(User.class));
 		System.out.println(mgf2Json());
 		System.out.println(mgf2Map());
-		return "index.html";
+		return "/index";
 	}
 
 }

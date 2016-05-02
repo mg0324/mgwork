@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,18 +20,34 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
 
+import mg.util.PropTool;
+
 public abstract class MGWorkServlet extends HttpServlet{
-	
+	private static final long serialVersionUID = 1L;
+	/**
+	 * request
+	 */
 	protected HttpServletRequest request;
+	/**
+	 * response
+	 */
 	protected HttpServletResponse response;
 	/**
 	 * 请求url
 	 */
 	public static String REQUEST_URL;
 	/**
-	 * 
+	 * 网页文件默认前缀/web-inf/pages
 	 */
-	private static final long serialVersionUID = 1L;
+	private String MGWORK_WEBFLOADER_PREFIX = "/WEB-INF/pages";
+	private String MGWORK_WEB_PAGE_STUFFIX = ".html";
+	@Override
+	public void init() throws ServletException {
+		Properties prop = PropTool.use("mgwork.properties");
+		MGWORK_WEBFLOADER_PREFIX = prop.getProperty("mgwork.webfolder.prefix");
+		MGWORK_WEB_PAGE_STUFFIX = prop.getProperty("mgwork.web.page.stuffix");
+	}
+	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		this.request = request;
 		this.response = response;
@@ -90,7 +107,9 @@ public abstract class MGWorkServlet extends HttpServlet{
 			try {
 				res = (String) m.invoke(this);
 				if(res!=null){
-					request.getRequestDispatcher(res).forward(request,response);
+					String tourl = res + MGWORK_WEB_PAGE_STUFFIX;
+					if(!res.substring(0,1).equals("/")) tourl = MGWORK_WEBFLOADER_PREFIX + "/" + tourl;
+					request.getRequestDispatcher(tourl).forward(request,response);
 				}
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
@@ -125,7 +144,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 				}
 				json.put(key, _v.substring(2));
 			}else{
-				json.put(key, val[0]);
+				if(val[0].length()>0) json.put(key, val[0]);
 			}
 		}
 		return JSONObject.toJavaObject(json, c);
@@ -149,7 +168,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 				}
 				json.put(key, _v.substring(2));
 			}else{
-				json.put(key, val[0]);
+				if(val[0].length()>0) json.put(key, val[0]);
 			}
 		}
 		return json;
@@ -173,7 +192,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 				}
 				map.put(key, _v.substring(2));
 			}else{
-				map.put(key, val[0]);
+				if(val[0].length()>0) map.put(key, val[0]);
 			}
 		}
 		return map;
