@@ -6,9 +6,12 @@ package mg.core;
  */
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -20,6 +23,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
 import mg.util.PropTool;
 
 public abstract class MGWorkServlet extends HttpServlet{
@@ -48,13 +54,29 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 * 请求方法参数，默认action
 	 */
 	private String MGWORK_WEB_REQ_METHOD = "action";
+	/**
+	 * 模板，默认无，静态页
+	 */
+	private String MGWORK_WEB_VIEW_TYPE = "html";
+	/**
+	 * 视图后缀
+	 */
+	private String MGWORK_WEB_VIEW_TYPE_STUFFIX = ".html";
+	
+	
+	
+	private Configuration cfg;
 	
 	@Override
 	public void init() throws ServletException {
+		cfg = new Configuration();
 		Properties prop = PropTool.use("mgwork.properties");
 		MGWORK_WEBFLOADER_PREFIX = prop.getProperty("mgwork.webfolder.prefix","/WEB-INF/pages");
 		MGWORK_WEB_PAGE_STUFFIX = prop.getProperty("mgwork.web.page.stuffix",".html");
 		MGWORK_WEB_REQ_METHOD = prop.getProperty("mgwork.web.req.method", "action");
+		MGWORK_WEB_VIEW_TYPE = prop.getProperty("mgwork.web.view.type", "html");
+		MGWORK_WEB_VIEW_TYPE_STUFFIX = prop.getProperty("mgwork.web.view.type.stuffixe", ".html");
+		
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -116,10 +138,19 @@ public abstract class MGWorkServlet extends HttpServlet{
 			try {
 				res = (String) m.invoke(this);
 				if(res!=null){
+					//相对路径，绝对路径，后缀支持
 					String tourl = res;
 					if(!res.substring(0,1).equals("/")) tourl = MGWORK_WEBFLOADER_PREFIX + "/" + tourl;
 					if(!res.contains(".")) tourl = tourl + MGWORK_WEB_PAGE_STUFFIX;
-					request.getRequestDispatcher(tourl).forward(request,response);
+					//视图支持
+					if(MGWORK_WEB_VIEW_TYPE.equals("freemarker")){
+						//freemarker
+						if(!res.contains(".")) res = res + MGWORK_WEB_VIEW_TYPE_STUFFIX;
+						handleFreemarker(res);
+						request.getRequestDispatcher(tourl);//不需要转发，对于freemarker
+					}else{
+						request.getRequestDispatcher(tourl).forward(request,response);
+					}
 				}
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
@@ -134,6 +165,47 @@ public abstract class MGWorkServlet extends HttpServlet{
 			}
 		}
 	}
+	/**
+	 * freemarker支持
+	 */
+	private void handleFreemarker(String tpl) {
+		//获取request中的attributes到data中，然后给freemarker渲染
+		Map<String,Object> data = new HashMap<String,Object>();
+		//封装request中的参数
+		for (Enumeration<String> attrs=request.getAttributeNames(); attrs.hasMoreElements();) {
+			String attrName = attrs.nextElement();
+			data.put(attrName, request.getAttribute(attrName));
+		}
+		//封装session中参数
+		for (Enumeration<String> attrs=request.getSession().getAttributeNames(); attrs.hasMoreElements();) {
+			String attrName = attrs.nextElement();
+			data.put(attrName, request.getSession().getAttribute(attrName));
+		}
+		cfg.setServletContextForTemplateLoading(getServletContext(),MGWORK_WEBFLOADER_PREFIX);
+        cfg.setDefaultEncoding("UTF-8");
+        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        cfg.setNumberFormat("#0.#####");
+        cfg.setDateFormat("yyyy-MM-dd");
+        cfg.setTimeFormat("HH:mm:ss");
+        cfg.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
+        Template temp;
+        Writer out = null;
+		try {
+			temp = cfg.getTemplate(tpl);
+			out = new OutputStreamWriter(response.getOutputStream());
+		    temp.process(data, out);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally{
+			if(out!=null)
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+	}
+
 	/**
 	 * 封装request中参数为对象
 	 * @param c 将表单参数要转成的对象类型，eg User.class
