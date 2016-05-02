@@ -40,12 +40,21 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 * 网页文件默认前缀/web-inf/pages
 	 */
 	private String MGWORK_WEBFLOADER_PREFIX = "/WEB-INF/pages";
+	/**
+	 * 网页文件后缀，默认.html
+	 */
 	private String MGWORK_WEB_PAGE_STUFFIX = ".html";
+	/**
+	 * 请求方法参数，默认action
+	 */
+	private String MGWORK_WEB_REQ_METHOD = "action";
+	
 	@Override
 	public void init() throws ServletException {
 		Properties prop = PropTool.use("mgwork.properties");
-		MGWORK_WEBFLOADER_PREFIX = prop.getProperty("mgwork.webfolder.prefix");
-		MGWORK_WEB_PAGE_STUFFIX = prop.getProperty("mgwork.web.page.stuffix");
+		MGWORK_WEBFLOADER_PREFIX = prop.getProperty("mgwork.webfolder.prefix","/WEB-INF/pages");
+		MGWORK_WEB_PAGE_STUFFIX = prop.getProperty("mgwork.web.page.stuffix",".html");
+		MGWORK_WEB_REQ_METHOD = prop.getProperty("mgwork.web.req.method", "action");
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -67,7 +76,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 * @param r
 	 */
 	public String getActionNameFromUrl(){
-		return request.getParameter("action");
+		return request.getParameter(MGWORK_WEB_REQ_METHOD);
 	}
 	/**
 	 * 根据方法名，使用反射得到该方法对象
