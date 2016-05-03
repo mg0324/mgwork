@@ -6,6 +6,9 @@
 2.表单参数转json,map,object都是基于json的实现包fastjson来实现的（fastjson也据成市效率最高的json序列化，反序列化最快的包）。<br/>
 3.常用的getPara,getAttr,renderJsp,renderFreemarker,ajaxJsonSuccess,ajaxJsonError等方法。<br/>
 
+##依赖jar包
+1.freemarker jar（可选），如果使用到freemarker模板的话。<br/>
+2.fastjson jar（必须），表单数据封装为对象，需要json包。<br/>
 
 ##功能更新
 ###2016-5-2
