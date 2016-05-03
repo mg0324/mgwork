@@ -13,3 +13,7 @@
 3.将文件存放位置，网页文件后缀，请求方法名称，都放到配置文件中。<br/>
 4.添加jsp 案例。<br/>
 5.添加freemarker视图支持。<br/>
+
+###2016-5-3
+1.添加多模板jsp,freemarker支持，return "d/demo";支持默认模板配置。
+2.增强request,response的相关方法。getPara,renderJson等。

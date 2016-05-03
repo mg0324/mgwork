@@ -3,7 +3,6 @@ package mg.test;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 import javax.servlet.annotation.WebServlet;
 
@@ -39,10 +38,10 @@ public class TestServlet extends MGWorkServlet{
 		this.setSessionAttr("time", new Date().toLocaleString());
 		User u = (User) mgf2Object(User.class);
 		this.setAttr("user", u);
-		return "freemarker/demo";
+		return "freemarker/demo1";
 	}
 	
-	public String testjsp(){
+	public void testjsp(){
 		this.setSessionAttr("time", new Date().toLocaleString());
 		User u = new User();
 		u.setAge(12);
@@ -51,10 +50,11 @@ public class TestServlet extends MGWorkServlet{
 		u.setPassword(MD5Encoder.encode("123456".getBytes()));
 		u.setUsername("xiaogang");
 		this.setAttr("user", u);
-		return "jsp/demo.jsp";
+		renderJsp("jsp/demo");
+		
 	}
 	
-	public String testfreemarker(){
+	public void testfreemarker(){
 		this.setSessionAttr("time", new Date().toLocaleString());
 	
 		List<User> list = new ArrayList<User>();
@@ -68,7 +68,7 @@ public class TestServlet extends MGWorkServlet{
 			list.add(u);
 		}
 		this.setAttr("ulist", list);
-		return "freemarker/demo";
+		this.renderFreemarker("freemarker/demo");
 	}
 
 }

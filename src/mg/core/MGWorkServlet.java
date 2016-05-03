@@ -55,13 +55,9 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 */
 	private String MGWORK_WEB_REQ_METHOD = "action";
 	/**
-	 * 模板，默认无，静态页
+	 * 默认视图，jsp
 	 */
-	private String MGWORK_WEB_VIEW_TYPE = "html";
-	/**
-	 * 视图后缀
-	 */
-	private String MGWORK_WEB_VIEW_TYPE_STUFFIX = ".html";
+	private String MGWORK_WEB_VIEW_TYPE = "jsp";
 	
 	
 	
@@ -74,9 +70,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 		MGWORK_WEBFLOADER_PREFIX = prop.getProperty("mgwork.webfolder.prefix","/WEB-INF/pages");
 		MGWORK_WEB_PAGE_STUFFIX = prop.getProperty("mgwork.web.page.stuffix",".html");
 		MGWORK_WEB_REQ_METHOD = prop.getProperty("mgwork.web.req.method", "action");
-		MGWORK_WEB_VIEW_TYPE = prop.getProperty("mgwork.web.view.type", "html");
-		MGWORK_WEB_VIEW_TYPE_STUFFIX = prop.getProperty("mgwork.web.view.type.stuffixe", ".html");
-		
+		MGWORK_WEB_VIEW_TYPE = prop.getProperty("mgwork.web.view.type", "jsp");
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -138,19 +132,8 @@ public abstract class MGWorkServlet extends HttpServlet{
 			try {
 				res = (String) m.invoke(this);
 				if(res!=null){
-					//相对路径，绝对路径，后缀支持
-					String tourl = res;
-					if(!res.substring(0,1).equals("/")) tourl = MGWORK_WEBFLOADER_PREFIX + "/" + tourl;
-					if(!res.contains(".")) tourl = tourl + MGWORK_WEB_PAGE_STUFFIX;
-					//视图支持
-					if(MGWORK_WEB_VIEW_TYPE.equals("freemarker")){
-						//freemarker
-						if(!res.contains(".")) res = res + MGWORK_WEB_VIEW_TYPE_STUFFIX;
-						handleFreemarker(res);
-						request.getRequestDispatcher(tourl);//不需要转发，对于freemarker
-					}else{
-						request.getRequestDispatcher(tourl).forward(request,response);
-					}
+					//渲染模板
+					handleViewType(res);
 				}
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
@@ -158,51 +141,24 @@ public abstract class MGWorkServlet extends HttpServlet{
 				e.printStackTrace();
 			} catch (InvocationTargetException e) {
 				e.printStackTrace();
-			} catch (ServletException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	}
 	/**
-	 * freemarker支持
+	 * 渲染模板
 	 */
-	private void handleFreemarker(String tpl) {
-		//获取request中的attributes到data中，然后给freemarker渲染
-		Map<String,Object> data = new HashMap<String,Object>();
-		//封装request中的参数
-		for (Enumeration<String> attrs=request.getAttributeNames(); attrs.hasMoreElements();) {
-			String attrName = attrs.nextElement();
-			data.put(attrName, request.getAttribute(attrName));
-		}
-		//封装session中参数
-		for (Enumeration<String> attrs=request.getSession().getAttributeNames(); attrs.hasMoreElements();) {
-			String attrName = attrs.nextElement();
-			data.put(attrName, request.getSession().getAttribute(attrName));
-		}
-		cfg.setServletContextForTemplateLoading(getServletContext(),MGWORK_WEBFLOADER_PREFIX);
-        cfg.setDefaultEncoding("UTF-8");
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        cfg.setNumberFormat("#0.#####");
-        cfg.setDateFormat("yyyy-MM-dd");
-        cfg.setTimeFormat("HH:mm:ss");
-        cfg.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
-        Template temp;
-        Writer out = null;
-		try {
-			temp = cfg.getTemplate(tpl);
-			out = new OutputStreamWriter(response.getOutputStream());
-		    temp.process(data, out);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally{
-			if(out!=null)
-				try {
-					out.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+	private void handleViewType(String view) {
+		switch (MGWORK_WEB_VIEW_TYPE) {
+		case "jsp":
+			renderJsp(view);
+			break;
+		case "freemarker":
+			renderFreemarker(view);
+			break;
+		default:
+			//默认jsp视图
+			renderJsp(view);
+			break;
 		}
 	}
 
@@ -286,11 +242,111 @@ public abstract class MGWorkServlet extends HttpServlet{
 	protected Object getAttr(String key) {
 		return this.request.getAttribute(key);
 	}
-	
 	protected void setSessionAttr(String key,Object v) {
 		this.request.getSession().setAttribute(key, v);
 	}
 	protected Object getSessionAttr(String key) {
 		return this.request.getSession().getAttribute(key);
+	}
+	/**增强获取参数方法**/
+	protected String getPara(String key) {
+		return this.request.getParameter(key);
+	}
+	protected Integer getParaToInt(String key) {
+		return Integer.parseInt(this.request.getAttribute(key).toString().trim());
+	}
+	protected Float getParaToFloat(String key) {
+		return Float.parseFloat(this.request.getAttribute(key).toString().trim());
+	}
+	protected Double getParaToDouble(String key) {
+		return Double.parseDouble(this.request.getAttribute(key).toString().trim());
+	}
+	
+	/**增强response方法**/
+	protected void renderJson(Object obj) {
+		try {
+			this.response.setContentType("application/json;charset=utf-8");
+			this.response.getOutputStream().write(JSONObject.toJSONString(obj).getBytes("utf-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	protected void ajaxJsonSuccess(Object obj) {
+		AjaxResult ar = new AjaxResult();
+		ar.setState(200);
+		ar.setData(obj);
+		ar.setMsg("操作成功");
+		this.renderJson(ar);
+	}
+	protected void ajaxJsonError(Object obj) {
+		AjaxResult ar = new AjaxResult();
+		ar.setState(0);
+		ar.setData(obj);
+		ar.setMsg("操作失败");
+		this.renderJson(ar);
+	}
+	/**
+	 * 渲染jsp
+	 * @param view
+	 */
+	protected void renderJsp(String view){
+		//相对路径，绝对路径，后缀支持
+		String tourl = view;
+		if(!view.substring(0,1).equals("/")) tourl = MGWORK_WEBFLOADER_PREFIX + "/" + tourl;
+		if(!view.contains(".")) tourl = tourl + ".jsp";
+		try {
+			request.getRequestDispatcher(tourl).forward(request,response);
+		} catch (ServletException | IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * freemarker支持
+	 */
+	protected void renderFreemarker(String tpl) {
+		//获取request中的attributes到data中，然后给freemarker渲染
+		Map<String,Object> data = new HashMap<String,Object>();
+		//封装request中的参数
+		for (Enumeration<String> attrs=request.getAttributeNames(); attrs.hasMoreElements();) {
+			String attrName = attrs.nextElement();
+			data.put(attrName, request.getAttribute(attrName));
+		}
+		//封装session中参数
+		for (Enumeration<String> attrs=request.getSession().getAttributeNames(); attrs.hasMoreElements();) {
+			String attrName = attrs.nextElement();
+			data.put(attrName, request.getSession().getAttribute(attrName));
+		}
+		//不延迟加载
+		cfg.setTemplateUpdateDelay(0);
+		//设置模板加载目录前缀
+		cfg.setServletContextForTemplateLoading(getServletContext(),MGWORK_WEBFLOADER_PREFIX);
+        cfg.setDefaultEncoding("UTF-8");
+        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        //设置默认格式化样式
+        cfg.setNumberFormat("#0.#####");
+        cfg.setDateFormat("yyyy-MM-dd");
+        cfg.setTimeFormat("HH:mm:ss");
+        cfg.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
+        Template temp;
+        Writer out = null;
+		try {
+			String tourl = tpl;
+			if(!tpl.contains(".")) tourl = tourl + MGWORK_WEB_PAGE_STUFFIX;
+			temp = cfg.getTemplate(tourl);
+			out = new OutputStreamWriter(response.getOutputStream());
+		    temp.process(data, out);
+		    if(!tpl.substring(0,1).equals("/")) tourl = MGWORK_WEBFLOADER_PREFIX + "/" + tourl;
+			request.getRequestDispatcher(tourl);//跳转，并不转发，转发会出现异常
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally{
+			if(out!=null)
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
 	}
 }
