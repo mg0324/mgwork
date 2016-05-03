@@ -8,14 +8,21 @@ import javax.servlet.annotation.WebServlet;
 
 import org.apache.tomcat.util.security.MD5Encoder;
 
+import com.alibaba.fastjson.JSONObject;
+
 import mg.core.MGWorkServlet;
-@WebServlet("/test.mg")
+@WebServlet("/test.mg/*")
 public class TestServlet extends MGWorkServlet{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	public String index(){
+		
+		return "index";
+	}
 	/**
 	 * test1方法
 	 * @return 跳转到test1.html
@@ -69,6 +76,11 @@ public class TestServlet extends MGWorkServlet{
 		}
 		this.setAttr("ulist", list);
 		this.renderFreemarker("freemarker/demo");
+	}
+	
+	public void testAjax(){
+		JSONObject json = this.mgf2Json();
+		this.ajaxJsonSuccess(json);
 	}
 
 }

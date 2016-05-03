@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,10 +52,6 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 */
 	private String MGWORK_WEB_PAGE_STUFFIX = ".html";
 	/**
-	 * 请求方法参数，默认action
-	 */
-	private String MGWORK_WEB_REQ_METHOD = "action";
-	/**
 	 * 默认视图，jsp
 	 */
 	private String MGWORK_WEB_VIEW_TYPE = "jsp";
@@ -69,7 +66,6 @@ public abstract class MGWorkServlet extends HttpServlet{
 		Properties prop = PropTool.use("mgwork.properties");
 		MGWORK_WEBFLOADER_PREFIX = prop.getProperty("mgwork.webfolder.prefix","/WEB-INF/pages");
 		MGWORK_WEB_PAGE_STUFFIX = prop.getProperty("mgwork.web.page.stuffix",".html");
-		MGWORK_WEB_REQ_METHOD = prop.getProperty("mgwork.web.req.method", "action");
 		MGWORK_WEB_VIEW_TYPE = prop.getProperty("mgwork.web.view.type", "jsp");
 	}
 	
@@ -84,7 +80,10 @@ public abstract class MGWorkServlet extends HttpServlet{
 		//编码过滤
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
-		REQUEST_URL = request.getRequestURL().toString() +"?"+ request.getQueryString();
+		REQUEST_URL = request.getRequestURL().toString();
+		System.out.println(new Date().toLocaleString() + " - " + REQUEST_URL);
+		//设置根目录webroot
+		this.setAttr("ROOT", request.getContextPath());
 		runMethod();
 	}
 	/**
@@ -92,7 +91,8 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 * @param r
 	 */
 	public String getActionNameFromUrl(){
-		return request.getParameter(MGWORK_WEB_REQ_METHOD);
+		String url = request.getRequestURL().toString();
+		return url.substring(url.lastIndexOf("/")+1,url.length());
 	}
 	/**
 	 * 根据方法名，使用反射得到该方法对象
@@ -121,7 +121,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 			try {
 				PrintWriter out = response.getWriter();
 				String errorHtml = "<head><meta charset='utf-8'/><title>404</title></head><h2><center>404</center></h2>"
-						+ "<hr/><center>您输入的请求有误，无法访问到资源，请重新输入!!<br/>shared by <a href=''>mgwork1.0</a></center>";
+						+ "<hr/><center>您输入的请求有误，无法访问到资源，请重新输入!!<br/>shared by <a href='https://github.com/mg0324/mgwork'>mgwork1.0</a></center>";
 				out.print(errorHtml);
 				out.close();
 			} catch (IOException e) {

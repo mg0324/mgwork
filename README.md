@@ -15,5 +15,11 @@
 5.添加freemarker视图支持。<br/>
 
 ###2016-5-3
-1.添加多模板jsp,freemarker支持，return "d/demo";支持默认模板配置。
-2.增强request,response的相关方法。getPara,renderJson等。
+1.添加多模板jsp,freemarker支持，return "d/demo";支持默认模板配置。<br/>
+2.增强request,response的相关方法。getPara,renderJson等。<br/>
+3.添加项目路径ROOT支持，可以在jsp和freemarker中使用${ROOT}，特别在引入资源文件时需要使用到。<br/>
+4.支持url路径从http://localhost:8080/mgwork/test.mg?action=test1 更新为 http://localhost:8080/mgwork/test.mg/test1(更普遍化)。
+注意点：可以去掉冗余配置<br/>
+-》请求方法的参数 mgwork.web.req.method = action<br/>
+要注意的是在配置Servlet3.0的时候，需要从之前的<br/>
+@WebServlet("/test.mg") 更新为 @WebServlet("/test.mg/*")加上/*标示支持test.mg为前缀的路径。
