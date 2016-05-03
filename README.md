@@ -4,6 +4,7 @@
 ##优点
 1.是直接基于底层的servlet来处理跳转的，所以速度最接近servlet，是轻量级的mvc控制层框架，效率高。<br/>
 2.表单参数转json,map,object都是基于json的实现包fastjson来实现的（fastjson也据成市效率最高的json序列化，反序列化最快的包）。<br/>
+3.常用的getPara,getAttr,renderJsp,renderFreemarker,ajaxJsonSuccess,ajaxJsonError等方法。<br/>
 
 
 ##功能更新
