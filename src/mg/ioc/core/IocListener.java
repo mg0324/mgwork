@@ -3,6 +3,7 @@ package mg.ioc.core;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Properties;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -10,6 +11,7 @@ import javax.servlet.ServletContextListener;
 import mg.ioc.annotation.ToBean;
 import mg.ioc.annotation.UseBean;
 import mg.util.PackageUtil;
+import mg.util.PropTool;
 
 /**
  * ioc监听，随web.xml启动 , 单例
@@ -32,7 +34,7 @@ public class IocListener implements ServletContextListener{
 	}
 
 	@Override
-	public void contextInitialized(ServletContextEvent arg0) {
+	public void contextInitialized(ServletContextEvent sce) {
 		initMgIoc();
 	}
 	/**
@@ -41,7 +43,9 @@ public class IocListener implements ServletContextListener{
 	private void initMgIoc() {
 		//扫描注解加载到ioc工厂中
 		//System.out.println("扫描注解加载到ioc工厂中");
-		String packageName = "mg.test";
+		Properties prop = PropTool.use("mgwork.properties");
+		//未配置就扫描所有package
+		String packageName = prop.getProperty("mgioc.scan.package","");
 		List<String> classNames = PackageUtil.getClassName(packageName);
 		for(String className : classNames){
 			injectToBean(className);
