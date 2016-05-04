@@ -27,19 +27,12 @@ public class IocFactory{
 	 * 得到实例对象从容器中
 	 * @param name id值
 	 */
-	@SuppressWarnings("rawtypes")
 	public static Object get(String name){
 		synchronized (name) {
 			Object obj = factory.get(name);
 			if(obj == null){
-				//未交给mgioc管理的，如mgwork的action是给servlet3.0web.xml容器管理的，需要手动创建一个对象管理起来
-				try {
-					Class clazz = Class.forName(name);
-					obj = clazz.newInstance();
-					IocFactory.add(name, obj);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				//未交给mgioc管理的，如mgwork的action是给servlet3.0web.xml容器管理的，不做处理
+				return null;
 			}
 			return obj;
 		}
