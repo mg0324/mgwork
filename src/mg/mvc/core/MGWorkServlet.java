@@ -1,4 +1,4 @@
-package mg.core;
+package mg.mvc.core;
 
 /**
  * @author 梅刚 2014-11-3 21:34
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
@@ -27,6 +28,8 @@ import com.alibaba.fastjson.JSONObject;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
+import mg.ioc.annotation.UseBean;
+import mg.ioc.core.IocFactory;
 import mg.util.PropTool;
 
 public abstract class MGWorkServlet extends HttpServlet{
@@ -70,8 +73,6 @@ public abstract class MGWorkServlet extends HttpServlet{
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		this.request = request;
-		this.response = response;
 		doPost(request, response);
 	}
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -91,6 +92,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 * @param r
 	 */
 	public String getActionNameFromUrl(){
+		if(request==null) return null;
 		String url = request.getRequestURL().toString();
 		return url.substring(url.lastIndexOf("/")+1,url.length());
 	}
@@ -111,10 +113,34 @@ public abstract class MGWorkServlet extends HttpServlet{
 		return m;
 	}
 	/**
+	 * 解析UseBean注解
+	 * @param className 类名
+	 */
+	private void injectUseBean() {
+		try {
+			//解析属性注解@UseBean
+			Field[] fields = this.getClass().getDeclaredFields();
+			for(Field f : fields){
+				UseBean useBean = f.getAnnotation(UseBean.class);
+				if(null != useBean){
+					//System.out.println("mgworkAction:--className="+this.getClass().getName()+"的"+f.getName()+"属性 <-- 已被注入. ");
+					//打开访问private的属性
+					f.setAccessible(true);
+					f.set(this, IocFactory.get(f.getType().toString().split(" ")[1]));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	/**
 	 * 使用invoke来运行要执行的Method对象
 	 * @param r
 	 */
 	public void runMethod(){
+		//注入useBean
+		injectUseBean();//整合mgwork和mgioc的关键
+		
 		Method m = getMethodByActionName();
 		if(m==null){
 			//如果请求的方法不存在

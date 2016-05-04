@@ -1,4 +1,4 @@
-package mg.core;
+package mg.mvc.core;
 /**
  * ajax结果对象
  * @author mg 

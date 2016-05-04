@@ -1,5 +1,6 @@
-# mgwork
+# mgwork-ioc
 自定义mvc框架，基于mipo frameworkServlet思想。
+整合mgioc框架（自定义的一款小巧的ioc框架）后，生成mgwork-ioc框架；拥有健全的mvc控制，ioc依赖注入特性。
 
 ##优点
 1.是直接基于底层的servlet来处理跳转的，所以速度最接近servlet，是轻量级的mvc控制层框架，效率高。<br/>
@@ -27,3 +28,7 @@
 -》请求方法的参数 mgwork.web.req.method = action<br/>
 要注意的是在配置Servlet3.0的时候，需要从之前的<br/>
 @WebServlet("/test.mg") 更新为 @WebServlet("/test.mg/*")加上/*标示支持test.mg为前缀的路径。
+
+###2016-5-4
+1.整合mgioc到mgwork框架中，生成mgwork-ioc框架。<br/>
+2.优化mgwork的bug.(getActionNameFromUrl 中 request可能未空，导致启动时报错。)

@@ -10,7 +10,7 @@ import org.apache.tomcat.util.security.MD5Encoder;
 
 import com.alibaba.fastjson.JSONObject;
 
-import mg.core.MGWorkServlet;
+import mg.mvc.core.MGWorkServlet;
 @WebServlet("/test.mg/*")
 public class TestServlet extends MGWorkServlet{
 
