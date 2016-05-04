@@ -1,5 +1,5 @@
 # mgwork-ioc
-自定义mvc框架，基于mipo frameworkServlet思想。
+自定义mvc框架，基于mipo frameworkServlet思想。<br/>
 整合mgioc框架（自定义的一款小巧的ioc框架）后，生成mgwork-ioc框架；拥有健全的mvc控制，ioc依赖注入特性。
 
 ##优点
