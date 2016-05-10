@@ -34,3 +34,6 @@
 2.优化mgwork的bug.(getActionNameFromUrl 中 request可能未空，导致启动时报错。)<br/>
 3.修复mgioc扫描包路径，从mgwork.properties文件中获取mgioc.scan.package，如果没有配置，就默认所有包。<br/>
 4.修复mgwork的Action是交个servlet3.0管理的(请求对应，非单例)，所以不用mgioc管理的bug.<br/>
+
+###2016-5-10
+1.抽出mgutil，引入依赖mgutil-1.0.jar，依赖log4j.jar来写日志。

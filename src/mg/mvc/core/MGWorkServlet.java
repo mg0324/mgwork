@@ -24,13 +24,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mg.util.PropTool;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
 import mg.ioc.annotation.UseBean;
 import mg.ioc.core.IocFactory;
-import mg.util.PropTool;
 
 public abstract class MGWorkServlet extends HttpServlet{
 	private static final long serialVersionUID = 1L;

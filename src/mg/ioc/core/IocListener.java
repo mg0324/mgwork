@@ -9,10 +9,12 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebServlet;
 
+import com.mg.log.MgLog;
+import com.mg.util.PackageUtil;
+import com.mg.util.PropTool;
+
 import mg.ioc.annotation.ToBean;
 import mg.ioc.annotation.UseBean;
-import mg.util.PackageUtil;
-import mg.util.PropTool;
 
 /**
  * ioc监听，随web.xml启动 , 单例
@@ -54,8 +56,8 @@ public class IocListener implements ServletContextListener{
 		for(String className : classNames){
 			injectUseBean(className);
 		}
-		System.out.println("mgioc init success.");
-		System.out.println("ioc --> "+IocFactory.toJsonString());
+		MgLog.log.info("mgioc init success.");
+		MgLog.log.info("ioc --> "+IocFactory.toJsonString());
 	}
 	/**
 	 * 解析ToBean注解
