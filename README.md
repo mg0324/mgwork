@@ -52,3 +52,4 @@
 	#redis服务端口
 	mg.ioc.redis.port = 6379
 
+3.注意要将对象存入到redis中，需要该对象实现（implements）Serializable序列化接口。
