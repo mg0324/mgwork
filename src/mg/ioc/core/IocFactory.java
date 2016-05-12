@@ -1,7 +1,13 @@
 package mg.ioc.core;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import com.alibaba.fastjson.JSONObject;
+import com.mg.util.PropTool;
+
+import mg.ioc.util.SerializeUtil;
+import redis.clients.jedis.Jedis;
 
 /**
  * ioc工厂 , 单例
@@ -12,7 +18,15 @@ public class IocFactory{
 	/**
 	 * 线程安全加锁,用来存放bean的容器
 	 */
-	private static Map<String, Object> factory = new HashMap<>();
+	//使用redis来做ioc的容器结构
+	//private static Map<String, Object> factory = new HashMap<>();
+	private static Jedis factory;
+	static{
+		Properties prop = PropTool.use("mgwork.properties");
+		String host = prop.getProperty("mg.ioc.redis.host");
+		int port = Integer.parseInt(prop.getProperty("mg.ioc.redis.port"));
+		factory = new Jedis(host, port);
+	}
 	/**
 	 * 加入factory容器中
 	 * @param name 类名作为id
@@ -20,7 +34,7 @@ public class IocFactory{
 	 */
 	public static void add(String name, Object newInstance) {
 		synchronized (name) {
-			factory.put(name, newInstance);
+			factory.set(name.getBytes(), SerializeUtil.serialize(newInstance));
 		}
 	}
 	/**
@@ -29,7 +43,7 @@ public class IocFactory{
 	 */
 	public static Object get(String name){
 		synchronized (name) {
-			Object obj = factory.get(name);
+			Object obj = SerializeUtil.unserialize(factory.get(name.getBytes()));
 			if(obj == null){
 				//未交给mgioc管理的，如mgwork的action是给servlet3.0web.xml容器管理的，不做处理
 				return null;
@@ -42,13 +56,17 @@ public class IocFactory{
 	 * @return
 	 */
 	public static String toJsonString(){
-		return factory.toString();
+		JSONObject json = new JSONObject();
+		Set<String> keys = factory.keys("*");
+		json.put("size", keys.size());
+		json.put("ioc", keys);
+		return json.toJSONString();
 	}
 	/**
 	 * 释放factory
 	 */
 	public static void destoryFactory() {
-		factory.clear();
+		factory.flushDB();
 	}
 	
 	/**
@@ -58,7 +76,7 @@ public class IocFactory{
 	 */
 	@SuppressWarnings("rawtypes")
 	public static Object getBean(Class clazz){
-		return factory.get(clazz.getName());
+		return SerializeUtil.unserialize(factory.get(clazz.getName().getBytes()));
 	}
 	
 }

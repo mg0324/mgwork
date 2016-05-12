@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mg.log.MgLog;
 import com.mg.util.PropTool;
 
 import freemarker.template.Configuration;
@@ -116,17 +117,24 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 * 解析UseBean注解
 	 * @param className 类名
 	 */
-	private void injectUseBean() {
+	@SuppressWarnings("rawtypes")
+	private void injectUseBean(Object obj,String className) {
 		try {
+			Class clazz = Class.forName(className);
 			//解析属性注解@UseBean
-			Field[] fields = this.getClass().getDeclaredFields();
+			Field[] fields = clazz.getDeclaredFields();
 			for(Field f : fields){
 				UseBean useBean = f.getAnnotation(UseBean.class);
 				if(null != useBean){
 					//System.out.println("mgworkAction:--className="+this.getClass().getName()+"的"+f.getName()+"属性 <-- 已被注入. ");
 					//打开访问private的属性
 					f.setAccessible(true);
-					f.set(this, IocFactory.get(f.getType().toString().split(" ")[1]));
+					String use_class = f.getType().toString().split(" ")[1];//use注解
+					Object use_obj = IocFactory.get(use_class);
+					f.set(obj, use_obj);
+					MgLog.log.info("mgworkioc : className="+this.getClass().getName()+"的"+f.getName()+"属性 <-- 已被注入. ");
+					//递归注入
+					injectUseBean(use_obj,use_class);
 				}
 			}
 		} catch (Exception e) {
@@ -139,7 +147,7 @@ public abstract class MGWorkServlet extends HttpServlet{
 	 */
 	public void runMethod(){
 		//注入useBean
-		injectUseBean();//整合mgwork和mgioc的关键
+		injectUseBean(this,this.getClass().getName());//整合mgwork和mgioc的关键
 		
 		Method m = getMethodByActionName();
 		if(m==null){

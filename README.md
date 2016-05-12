@@ -8,8 +8,11 @@
 3.常用的getPara,getAttr,renderJsp,renderFreemarker,ajaxJsonSuccess,ajaxJsonError等方法。<br/>
 
 ##依赖jar包
-1.freemarker jar（可选），如果使用到freemarker模板的话。<br/>
-2.fastjson jar（必须），表单数据封装为对象，需要json包。<br/>
+	1.freemarker jar（可选），如果使用到freemarker模板的话。
+	2.fastjson jar（必须），表单数据封装为对象，需要json包。
+	3.log4j.jar（必须），日志包。
+	4.mgutil.jar（必须），通用的工具模块包。
+	5.jedis.jar（不需），再mgwork-ioc-2.0.jar的版本，使用redis来做为核心容器。
 
 ##功能更新
 ###2016-5-2
@@ -37,3 +40,15 @@
 
 ###2016-5-10
 1.抽出mgutil，引入依赖mgutil-1.0.jar，依赖log4j.jar来写日志。
+
+###2016-5-13
+1.使用redis数据库来代替map数据结构做为mgioc的核心容器，这样可以利用redis的良好性能，让mgioc在多bean的情况下更加稳定。<br/>
+一下是启动日志：
+![](./doc/img/mgwork-ioc-redis-start.png)
+2.在mgwork.properties中需要添加redis配置：
+
+	#redis服务主机
+	mg.ioc.redis.host = localhost
+	#redis服务端口
+	mg.ioc.redis.port = 6379
+
